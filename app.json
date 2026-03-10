@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "Cabanga Mobile",
+    "slug": "cabanga-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "be.scolares.cabangamobile"
+    },
+    "android": {
+      "package": "be.scolares.cabangamobile",
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-font"
+    ]
+  }
+}
