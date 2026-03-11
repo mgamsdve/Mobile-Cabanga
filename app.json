@@ -7,7 +7,10 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "be.scolares.cabangamobile"
+      "bundleIdentifier": "be.scolares.cabangamobile",
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "icon": "./assets/favicons/favicon-512x512.png",
     "android": {
@@ -16,7 +19,8 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.mael.cabangamobile",
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "runtimeVersion": "1.0.0"
     },
     "splash": {
       "image": "./assets/favicons/favicon-512x512.png",
@@ -30,6 +34,9 @@
       "eas": {
         "projectId": "e7b8f2fa-3860-42f3-bf58-4e1264b5c821"
       }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/e7b8f2fa-3860-42f3-bf58-4e1264b5c821"
     }
   }
 }
