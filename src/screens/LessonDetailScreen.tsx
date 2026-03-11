@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
   Animated,
   Dimensions,
@@ -17,7 +17,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { SubjectPill } from "@/components/SubjectPill";
 import { DiaryStackParamList, HomeStackParamList } from "@/navigation/types";
 import { useUiStore } from "@/store/uiStore";
-import { Colors, Radius, Spacing, Typography } from "@/theme";
+import { Radius, Spacing, Typography, useAppTheme } from "@/theme";
 
 type DiaryProps = NativeStackScreenProps<DiaryStackParamList, "LessonDetail">;
 type HomeProps = NativeStackScreenProps<HomeStackParamList, "LessonDetail">;
@@ -38,6 +38,7 @@ function formatFullDate(date: string) {
 }
 
 export function LessonDetailScreen({ navigation, route }: Props) {
+  const theme = useAppTheme();
   const insets = useSafeAreaInsets();
   const toggleHomeworkDone = useUiStore((state) => state.toggleHomeworkDone);
   const localHomeworkOverrides = useUiStore((state) => state.localHomeworkOverrides);
@@ -45,7 +46,35 @@ export function LessonDetailScreen({ navigation, route }: Props) {
 
   const resolvedDone = localHomeworkOverrides[String(entry.id)] ?? entry.homeworkDone;
   const isCompact = Dimensions.get("window").width < 768;
-  const translateY = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(isCompact ? 420 : 0)).current;
+
+  useEffect(() => {
+    if (!isCompact) {
+      return;
+    }
+
+    Animated.spring(translateY, {
+      toValue: 0,
+      useNativeDriver: true,
+      damping: 24,
+      stiffness: 240,
+    }).start();
+  }, [isCompact, translateY]);
+
+  const closeSheet = () => {
+    if (!isCompact) {
+      navigation.goBack();
+      return;
+    }
+
+    Animated.timing(translateY, {
+      toValue: 420,
+      duration: 220,
+      useNativeDriver: true,
+    }).start(() => {
+      navigation.goBack();
+    });
+  };
 
   const sheetPanResponder = useMemo(
     () =>
@@ -56,7 +85,7 @@ export function LessonDetailScreen({ navigation, route }: Props) {
         },
         onPanResponderRelease: (_, gestureState) => {
           if (gestureState.dy > 120) {
-            navigation.goBack();
+            closeSheet();
             return;
           }
 
@@ -66,7 +95,7 @@ export function LessonDetailScreen({ navigation, route }: Props) {
           }).start();
         },
       }),
-    [navigation, translateY],
+    [closeSheet, translateY],
   );
 
   const handleToggleDone = async () => {
@@ -76,24 +105,56 @@ export function LessonDetailScreen({ navigation, route }: Props) {
 
   const content = (
     <>
-      <View style={styles.heroCard}>
+      <View style={[styles.heroCard, { backgroundColor: theme.Surface }]}>
         <SubjectPill name={entry.lessonName} />
-        <Text style={styles.time}>{entry.hour}</Text>
-        <Text style={styles.date}>{formatFullDate(entry.date)}</Text>
+        <Text style={[styles.time, { color: theme.TextPrimary }]}>{entry.hour}</Text>
+        <Text style={[styles.date, { color: theme.TextSecondary }]}>{formatFullDate(entry.date)}</Text>
       </View>
 
-      <Text style={styles.sectionLabel}>CONTENU DU COURS</Text>
-      <Text selectable style={[styles.lessonText, resolvedDone ? styles.lessonTextDone : null]}>
+      <Text style={[styles.sectionLabel, { color: theme.TextSecondary }]}>CONTENU DU COURS</Text>
+      <Text
+        selectable
+        style={[
+          styles.lessonText,
+          { color: theme.TextPrimary },
+          resolvedDone ? styles.lessonTextDone : null,
+        ]}
+      >
         {entry.lessonSubject}
       </Text>
 
-      <View style={styles.separator} />
+      {entry.homework ? (
+        <>
+          <Text style={[styles.sectionLabel, { color: theme.TextSecondary }]}>DEVOIRS</Text>
+          <Text
+            selectable
+            style={[
+              styles.homeworkText,
+              { color: theme.TextSecondary },
+              resolvedDone ? styles.lessonTextDone : null,
+            ]}
+          >
+            {entry.homework}
+          </Text>
+        </>
+      ) : null}
 
-      <Pressable onPress={handleToggleDone} style={[styles.toggleRow, resolvedDone ? styles.toggleRowDone : null]}>
-        <View style={[styles.checkbox, resolvedDone ? styles.checkboxDone : null]}>
+      <View style={[styles.separator, { backgroundColor: theme.Border }]} />
+
+      <Pressable
+        onPress={handleToggleDone}
+        style={[
+          styles.toggleRow,
+          {
+            backgroundColor: resolvedDone ? theme.SurfaceDone : theme.Surface,
+            borderColor: theme.Border,
+          },
+        ]}
+      >
+        <View style={[styles.checkbox, { borderColor: theme.BorderStrong }, resolvedDone ? styles.checkboxDone : null]}>
           {resolvedDone ? <Text style={styles.checkboxMark}>✓</Text> : null}
         </View>
-        <Text style={styles.toggleText}>Marquer comme fait</Text>
+        <Text style={[styles.toggleText, { color: theme.TextPrimary }]}>Marquer comme fait</Text>
       </Pressable>
     </>
   );
@@ -101,18 +162,19 @@ export function LessonDetailScreen({ navigation, route }: Props) {
   if (isCompact) {
     return (
       <View style={styles.modalRoot}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backdrop} />
+        <Pressable onPress={closeSheet} style={[styles.backdrop, { backgroundColor: theme.Overlay }]} />
         <Animated.View
           style={[
             styles.sheet,
             {
+              backgroundColor: theme.SurfaceRaised,
               paddingBottom: insets.bottom + Spacing.space4,
               transform: [{ translateY }],
             },
           ]}
           {...sheetPanResponder.panHandlers}
         >
-          <View style={styles.sheetHandle} />
+          <View style={[styles.sheetHandle, { backgroundColor: theme.BorderStrong }]} />
           <ScrollView contentContainerStyle={styles.sheetContent}>{content}</ScrollView>
         </Animated.View>
       </View>
@@ -120,11 +182,11 @@ export function LessonDetailScreen({ navigation, route }: Props) {
   }
 
   return (
-    <SafeAreaView style={styles.desktopSafeArea} edges={["top", "bottom"]}>
+    <SafeAreaView style={[styles.desktopSafeArea, { backgroundColor: theme.Background }]} edges={["top", "bottom"]}>
       <View style={styles.desktopHeader}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons color={Colors.TextPrimary} name="chevron-back" size={20} />
-          <Text style={styles.backText}>Retour</Text>
+        <Pressable onPress={closeSheet} style={styles.backButton}>
+          <Ionicons color={theme.TextPrimary} name="chevron-back" size={20} />
+          <Text style={[styles.backText, { color: theme.TextPrimary }]}>Retour</Text>
         </Pressable>
       </View>
       <ScrollView contentContainerStyle={styles.desktopContent}>{content}</ScrollView>
@@ -136,14 +198,12 @@ const styles = StyleSheet.create({
   modalRoot: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(13,13,18,0.24)",
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
   },
   sheet: {
     maxHeight: "60%",
-    backgroundColor: Colors.SurfaceRaised,
     borderTopLeftRadius: Radius.lg,
     borderTopRightRadius: Radius.lg,
     shadowColor: "#000000",
@@ -155,7 +215,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 5,
     borderRadius: Radius.full,
-    backgroundColor: Colors.BorderStrong,
     alignSelf: "center",
     marginTop: Spacing.space2,
   },
@@ -166,7 +225,6 @@ const styles = StyleSheet.create({
   },
   desktopSafeArea: {
     flex: 1,
-    backgroundColor: Colors.Background,
   },
   desktopHeader: {
     paddingHorizontal: Spacing.space4,
@@ -180,14 +238,12 @@ const styles = StyleSheet.create({
   },
   backText: {
     ...Typography.BodyMedium,
-    color: Colors.TextPrimary,
   },
   desktopContent: {
     paddingHorizontal: Spacing.space5,
     paddingVertical: Spacing.space5,
   },
   heroCard: {
-    backgroundColor: Colors.Surface,
     borderRadius: Radius.lg,
     padding: Spacing.space5,
     gap: Spacing.space3,
@@ -198,57 +254,48 @@ const styles = StyleSheet.create({
   },
   time: {
     ...Typography.H1,
-    color: Colors.TextPrimary,
   },
   date: {
     ...Typography.Body,
-    color: Colors.TextSecondary,
   },
   sectionLabel: {
     ...Typography.Label,
-    color: Colors.TextSecondary,
     marginTop: Spacing.space5,
     marginBottom: Spacing.space2,
   },
   lessonText: {
     ...Typography.Body,
-    color: Colors.TextPrimary,
+  },
+  homeworkText: {
+    ...Typography.Body,
   },
   lessonTextDone: {
     textDecorationLine: "line-through",
-    color: Colors.TextSecondary,
   },
   separator: {
     height: 1,
-    backgroundColor: Colors.Border,
     marginVertical: Spacing.space5,
   },
   toggleRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.space3,
-    backgroundColor: Colors.Surface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.Border,
     paddingHorizontal: Spacing.space4,
     paddingVertical: Spacing.space4,
-  },
-  toggleRowDone: {
-    backgroundColor: Colors.SurfaceDone,
   },
   checkbox: {
     width: 24,
     height: 24,
     borderRadius: Radius.sm,
     borderWidth: 1,
-    borderColor: Colors.BorderStrong,
     alignItems: "center",
     justifyContent: "center",
   },
   checkboxDone: {
-    backgroundColor: Colors.Success,
-    borderColor: Colors.Success,
+    backgroundColor: "#22C55E",
+    borderColor: "#22C55E",
   },
   checkboxMark: {
     color: "#FFFFFF",
@@ -256,6 +303,5 @@ const styles = StyleSheet.create({
   },
   toggleText: {
     ...Typography.BodyMedium,
-    color: Colors.TextPrimary,
   },
 });

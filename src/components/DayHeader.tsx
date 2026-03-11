@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { Colors, Spacing, Typography } from "@/theme";
+import { Spacing, Typography, useAppTheme } from "@/theme";
 import { formatDayLabel } from "@/utils/dateUtils";
 
 interface DayHeaderProps {
@@ -9,11 +9,13 @@ interface DayHeaderProps {
 }
 
 export function DayHeader({ date, isToday }: DayHeaderProps) {
+  const theme = useAppTheme();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>
+      <Text style={[styles.text, { color: theme.TextSecondary }]}>
         {formatDayLabel(date)}
-        {isToday ? <Text style={styles.today}> - Aujourd'hui</Text> : null}
+        {isToday ? <Text style={[styles.today, { color: theme.AccentBlue }]}> - Aujourd'hui</Text> : null}
       </Text>
     </View>
   );
@@ -27,9 +29,6 @@ const styles = StyleSheet.create({
   },
   text: {
     ...Typography.Label,
-    color: Colors.TextSecondary,
   },
-  today: {
-    color: Colors.AccentBlue,
-  },
+  today: {},
 });

@@ -1,20 +1,35 @@
 {
   "expo": {
-    "name": "Cabanga Mobile",
+    "name": "Cabanga+",
     "slug": "cabanga-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "be.scolares.cabangamobile"
     },
+    "icon": "./assets/favicons/favicon-512x512.png",
     "android": {
-      "package": "be.scolares.cabangamobile",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/favicons/favicon-512x512.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.mael.cabangamobile",
       "predictiveBackGestureEnabled": false
+    },
+    "splash": {
+      "image": "./assets/favicons/favicon-512x512.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
     },
     "plugins": [
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "5c923c17-aeae-4636-a03a-dc5c88763d79"
+      }
+    }
   }
 }

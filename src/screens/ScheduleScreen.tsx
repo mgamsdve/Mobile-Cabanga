@@ -1,6 +1,6 @@
 import { useFocusEffect, useScrollToTop } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import {
   RefreshControl,
   ScrollView,
@@ -12,102 +12,99 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { EmptyState } from "@/components/EmptyState";
-import { ScheduleBlock } from "@/components/ScheduleBlock";
 import { ScheduleStackParamList } from "@/navigation/types";
-import { useScheduleStore } from "@/store/scheduleStore";
-import { Colors, Radius, Spacing, Typography } from "@/theme";
+import { useDiaryStore } from "@/store/diaryStore";
+import { useUiStore } from "@/store/uiStore";
+import { Radius, Spacing, Typography, useAppTheme } from "@/theme";
+import { formatDayLabel, getCurrentWeekRange, getTodayIso } from "@/utils/dateUtils";
 
 type Props = NativeStackScreenProps<ScheduleStackParamList, "Schedule">;
 
-const DAY_OPTIONS = [
-  { label: "Lun", value: 1 },
-  { label: "Mar", value: 2 },
-  { label: "Mer", value: 3 },
-  { label: "Jeu", value: 4 },
-  { label: "Ven", value: 5 },
-];
-
-export function ScheduleScreen({}: Props) {
+export function ScheduleScreen({ navigation }: Props) {
+  const theme = useAppTheme();
   const scrollRef = useRef<ScrollView>(null);
   useScrollToTop(scrollRef);
 
-  const fetchSchedule = useScheduleStore((state) => state.fetchSchedule);
-  const schedule = useScheduleStore((state) => state.schedule);
-  const selectedDay = useScheduleStore((state) => state.selectedDay);
-  const setSelectedDay = useScheduleStore((state) => state.setSelectedDay);
-  const loading = useScheduleStore((state) => state.loading);
+  const fetchWeek = useDiaryStore((state) => state.fetchWeek);
+  const weeksCache = useDiaryStore((state) => state.weeksCache);
+  const refreshing = useDiaryStore((state) => state.refreshing);
+  const loading = useDiaryStore((state) => state.loading);
+  const localHomeworkOverrides = useUiStore((state) => state.localHomeworkOverrides);
+
+  const todayIso = getTodayIso();
+  const { monday, friday } = getCurrentWeekRange();
+  const weekData = weeksCache[monday];
 
   useFocusEffect(
     useCallback(() => {
-      fetchSchedule();
-    }, [fetchSchedule]),
+      fetchWeek(monday);
+    }, [fetchWeek, monday]),
   );
 
-  const selectedEntries = schedule[selectedDay] ?? [];
+  const homeworkEntries = useMemo(() => {
+    const entries = Object.values(weekData?.days ?? {}).flat();
+
+    return entries
+      .filter((entry) => entry.homework && entry.date >= todayIso && entry.date <= friday)
+      .sort((left, right) => {
+        if (left.date === right.date) {
+          return left.hour.localeCompare(right.hour);
+        }
+
+        return left.date.localeCompare(right.date);
+      })
+      .map((entry) => ({
+        ...entry,
+        resolvedDone: localHomeworkOverrides[String(entry.id)] ?? entry.homeworkDone,
+      }));
+  }, [friday, localHomeworkOverrides, todayIso, weekData]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.Background }]} edges={["top"]}>
       <ScrollView
         ref={scrollRef}
         contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl
-            refreshing={loading}
-            tintColor={Colors.AccentBlue}
-            onRefresh={() => fetchSchedule({ force: true })}
+            refreshing={refreshing}
+            tintColor={theme.AccentBlue}
+            onRefresh={() => fetchWeek(monday, { force: true })}
           />
         }
       >
-        <Text style={styles.title}>Emploi du temps</Text>
+        <Text style={[styles.title, { color: theme.TextPrimary }]}>Devoirs de la semaine</Text>
 
-        <View style={styles.daySelector}>
-          {DAY_OPTIONS.map((option) => {
-            const active = option.value === selectedDay;
-
-            return (
+        {loading && !weekData ? (
+          <View style={styles.placeholderGroup}>
+            <View style={[styles.placeholder, { backgroundColor: theme.Surface }]} />
+            <View style={[styles.placeholder, { backgroundColor: theme.Surface }]} />
+            <View style={[styles.placeholder, { backgroundColor: theme.Surface }]} />
+          </View>
+        ) : homeworkEntries.length ? (
+          <View style={styles.cards}>
+            {homeworkEntries.map((entry) => (
               <TouchableOpacity
-                key={option.value}
-                activeOpacity={0.85}
-                onPress={() => setSelectedDay(option.value)}
-                style={[styles.dayPill, active ? styles.dayPillActive : null]}
+                key={entry.id}
+                activeOpacity={0.88}
+                onPress={() => navigation.navigate("LessonDetail", { entry })}
+                style={[styles.card, { backgroundColor: theme.Surface }]}
               >
-                <Text style={[styles.dayPillText, active ? styles.dayPillTextActive : null]}>
-                  {option.label}
+                <Text style={[styles.subject, { color: theme.TextPrimary }]}>{entry.lessonName.toUpperCase()}</Text>
+                <Text style={[styles.date, { color: theme.TextSecondary }]}>{formatDayLabel(entry.date)}</Text>
+                <Text
+                  style={[
+                    styles.homework,
+                    { color: entry.resolvedDone ? theme.TextTertiary : theme.TextPrimary },
+                    entry.resolvedDone ? styles.homeworkDone : null,
+                  ]}
+                >
+                  {entry.homework}
                 </Text>
               </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        <View style={styles.separator} />
-
-        {loading && !Object.keys(schedule).length ? (
-          <View style={styles.placeholderGroup}>
-            <View style={styles.placeholder} />
-            <View style={styles.placeholder} />
-            <View style={styles.placeholder} />
+            ))}
           </View>
-        ) : selectedEntries.length ? (
-          selectedEntries.map((entry) =>
-            entry.isBreak ? (
-              <View key={entry.id} style={styles.breakRow}>
-                <Text style={styles.breakTime}>{entry.startTime}</Text>
-                <View style={styles.breakDivider}>
-                  <Text style={styles.breakText}>{entry.subject}</Text>
-                </View>
-              </View>
-            ) : (
-              <ScheduleBlock
-                key={entry.id}
-                endTime={entry.endTime}
-                room={entry.room}
-                startTime={entry.startTime}
-                subject={entry.subject}
-              />
-            ),
-          )
         ) : (
-          <EmptyState icon="🗓️" message="Aucun cours fixe disponible" subtext="Tire pour réessayer." />
+          <EmptyState icon="📝" message="Aucun devoir restant cette semaine" />
         )}
       </ScrollView>
     </SafeAreaView>
@@ -117,7 +114,6 @@ export function ScheduleScreen({}: Props) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.Background,
   },
   content: {
     paddingTop: Spacing.space2,
@@ -125,67 +121,45 @@ const styles = StyleSheet.create({
   },
   title: {
     ...Typography.H2,
-    color: Colors.TextPrimary,
     paddingHorizontal: Spacing.space4,
   },
-  daySelector: {
-    flexDirection: "row",
+  cards: {
     gap: Spacing.space2,
     paddingHorizontal: Spacing.space4,
     paddingTop: Spacing.space4,
   },
-  dayPill: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.Surface,
+  card: {
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.space4,
+    paddingVertical: Spacing.space4,
+    shadowColor: "#000000",
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 1,
   },
-  dayPillActive: {
-    backgroundColor: Colors.AccentBlue,
-  },
-  dayPillText: {
+  subject: {
     ...Typography.BodyMedium,
-    color: Colors.TextSecondary,
+    textTransform: "uppercase",
   },
-  dayPillTextActive: {
-    color: "#FFFFFF",
+  date: {
+    ...Typography.Caption,
+    marginTop: Spacing.space1,
+    marginBottom: Spacing.space3,
   },
-  separator: {
-    height: 1,
-    backgroundColor: Colors.Border,
-    marginHorizontal: Spacing.space4,
-    marginVertical: Spacing.space4,
+  homework: {
+    ...Typography.Body,
+  },
+  homeworkDone: {
+    textDecorationLine: "line-through",
   },
   placeholderGroup: {
     gap: Spacing.space2,
+    paddingHorizontal: Spacing.space4,
+    paddingTop: Spacing.space4,
   },
   placeholder: {
-    height: 72,
-    marginHorizontal: Spacing.space4,
+    height: 92,
     borderRadius: Radius.md,
-    backgroundColor: Colors.Surface,
     opacity: 0.65,
-  },
-  breakRow: {
-    flexDirection: "row",
-    gap: Spacing.space3,
-    paddingHorizontal: Spacing.space4,
-    marginBottom: Spacing.space2,
-  },
-  breakTime: {
-    ...Typography.Mono,
-    width: Spacing.space8,
-    color: Colors.TextSecondary,
-  },
-  breakDivider: {
-    flex: 1,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.Border,
-    paddingHorizontal: Spacing.space4,
-    paddingVertical: Spacing.space2,
-  },
-  breakText: {
-    ...Typography.Caption,
-    color: Colors.TextSecondary,
   },
 });

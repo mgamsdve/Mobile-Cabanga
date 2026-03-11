@@ -1,15 +1,17 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { Colors, Spacing, Typography } from "@/theme";
+import { Spacing, Typography, useAppTheme } from "@/theme";
 
 interface SectionHeaderProps {
   title: string;
 }
 
 export function SectionHeader({ title }: SectionHeaderProps) {
+  const theme = useAppTheme();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
+      <Text style={[styles.title, { color: theme.TextSecondary }]}>{title}</Text>
     </View>
   );
 }
@@ -22,7 +24,6 @@ const styles = StyleSheet.create({
   },
   title: {
     ...Typography.Label,
-    color: Colors.TextSecondary,
     textTransform: "uppercase",
   },
 });

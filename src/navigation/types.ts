@@ -18,6 +18,7 @@ export type DiaryStackParamList = {
 
 export type ScheduleStackParamList = {
   Schedule: undefined;
+  LessonDetail: LessonDetailParams;
 };
 
 export type HolidaysStackParamList = {

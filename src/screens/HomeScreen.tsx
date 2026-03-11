@@ -22,12 +22,13 @@ import { HomeStackParamList } from "@/navigation/types";
 import { useAuthStore } from "@/store/authStore";
 import { useDiaryStore } from "@/store/diaryStore";
 import { useUiStore } from "@/store/uiStore";
-import { Colors, Spacing, Typography } from "@/theme";
+import { Colors, Spacing, Typography, useAppTheme } from "@/theme";
 import { formatDayLabel, getMondayOfWeek, getNextSchoolDay, getTodayIso } from "@/utils/dateUtils";
 
 type Props = NativeStackScreenProps<HomeStackParamList, "Home">;
 
 export function HomeScreen({ navigation }: Props) {
+  const theme = useAppTheme();
   const scrollRef = useRef<ScrollView>(null);
   useScrollToTop(scrollRef);
 
@@ -70,25 +71,25 @@ export function HomeScreen({ navigation }: Props) {
   });
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.Background }]} edges={["top"]}>
       <ScrollView
         ref={scrollRef}
         contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            tintColor={Colors.AccentBlue}
+            tintColor={theme.AccentBlue}
             onRefresh={() => loadData(true)}
           />
         }
       >
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Bonjour, {profile?.firstName ?? "toi"}</Text>
-            <Text style={styles.date}>{formatDayLabel(todayIso)}</Text>
+            <Text style={[styles.greeting, { color: theme.TextPrimary }]}>Bonjour, {profile?.firstName ?? "toi"}</Text>
+            <Text style={[styles.date, { color: theme.TextSecondary }]}>{formatDayLabel(todayIso)}</Text>
           </View>
-          <TouchableOpacity activeOpacity={0.8} style={styles.bellButton}>
-            <Ionicons color={Colors.TextSecondary} name="notifications-outline" size={20} />
+          <TouchableOpacity activeOpacity={0.8} style={[styles.bellButton, { backgroundColor: theme.Surface }]}>
+            <Ionicons color={theme.TextSecondary} name="notifications-outline" size={20} />
           </TouchableOpacity>
         </View>
 
@@ -110,6 +111,7 @@ export function HomeScreen({ navigation }: Props) {
                 hour={entry.hour}
                 lessonName={entry.lessonName}
                 lessonSubject={entry.lessonSubject}
+                homework={entry.homework}
                 homeworkDone={resolvedDone}
                 showTime={index === 0 || entry.hour !== todayEntries[index - 1]?.hour}
                 onPress={() => navigation.navigate("LessonDetail", { entry })}
@@ -133,11 +135,9 @@ export function HomeScreen({ navigation }: Props) {
                   key={entry.id}
                   isDone={resolvedDone}
                   isUrgent
-                  onToggleDone={() => {
-                    toggleHomeworkDone(entry.id, entry.homeworkDone);
-                  }}
+                  onPress={() => navigation.navigate("LessonDetail", { entry })}
                   subject={entry.lessonName}
-                  text={entry.lessonSubject}
+                  text={entry.homework ?? entry.lessonSubject}
                 />
               );
             })}
@@ -151,7 +151,6 @@ export function HomeScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.Background,
   },
   content: {
     paddingBottom: 120,
@@ -166,18 +165,15 @@ const styles = StyleSheet.create({
   },
   greeting: {
     ...Typography.H2,
-    color: Colors.TextPrimary,
   },
   date: {
     ...Typography.Body,
-    color: Colors.TextSecondary,
     marginTop: 2,
   },
   bellButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.Surface,
     alignItems: "center",
     justifyContent: "center",
   },

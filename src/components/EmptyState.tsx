@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { Colors, Spacing, Typography } from "@/theme";
+import { Spacing, Typography, useAppTheme } from "@/theme";
 
 interface EmptyStateProps {
   icon: string;
@@ -9,11 +9,13 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ icon, message, subtext }: EmptyStateProps) {
+  const theme = useAppTheme();
+
   return (
     <View style={styles.container}>
       <Text style={styles.icon}>{icon}</Text>
-      <Text style={styles.message}>{message}</Text>
-      {subtext ? <Text style={styles.subtext}>{subtext}</Text> : null}
+      <Text style={[styles.message, { color: theme.TextSecondary }]}>{message}</Text>
+      {subtext ? <Text style={[styles.subtext, { color: theme.TextTertiary }]}>{subtext}</Text> : null}
     </View>
   );
 }
@@ -32,12 +34,10 @@ const styles = StyleSheet.create({
   },
   message: {
     ...Typography.Body,
-    color: Colors.TextSecondary,
     textAlign: "center",
   },
   subtext: {
     ...Typography.Caption,
-    color: Colors.TextTertiary,
     textAlign: "center",
   },
 });

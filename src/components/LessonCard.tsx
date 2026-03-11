@@ -5,13 +5,14 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
-import { Colors, Radius, Spacing, Typography } from "@/theme";
+import { Radius, Spacing, Typography, useAppTheme } from "@/theme";
 import { getSubjectColor } from "@/utils/subjectColors";
 
 interface LessonCardProps {
   hour: string;
   lessonName: string;
   lessonSubject: string;
+  homework?: string;
   homeworkDone: boolean;
   showTime: boolean;
   onPress: () => void;
@@ -23,10 +24,12 @@ export function LessonCard({
   hour,
   lessonName,
   lessonSubject,
+  homework,
   homeworkDone,
   showTime,
   onPress,
 }: LessonCardProps) {
+  const theme = useAppTheme();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -49,22 +52,48 @@ export function LessonCard({
       }}
       style={animatedStyle}
     >
-      <View style={[styles.container, homeworkDone ? styles.containerDone : null]}>
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: homeworkDone ? theme.SurfaceDone : theme.Surface,
+          },
+        ]}
+      >
         <View style={styles.timeColumn}>
-          {showTime ? <Text style={styles.time}>{hour}</Text> : null}
+          {showTime ? <Text style={[styles.time, { color: theme.TextSecondary }]}>{hour}</Text> : null}
         </View>
         <View style={styles.content}>
           <View style={styles.headerRow}>
             <View style={[styles.subjectDot, { backgroundColor: getSubjectColor(lessonName) }]} />
-            <Text style={styles.subject}>{lessonName.toUpperCase()}</Text>
+            <Text style={[styles.subject, { color: theme.TextPrimary }]}>{lessonName.toUpperCase()}</Text>
           </View>
-          <View style={styles.divider} />
-          <Text style={[styles.description, homeworkDone ? styles.descriptionDone : null]} numberOfLines={3}>
+          <View style={[styles.divider, { backgroundColor: theme.Border }]} />
+          <Text
+            style={[
+              styles.description,
+              { color: theme.TextSecondary },
+              homeworkDone ? styles.descriptionDone : null,
+            ]}
+            numberOfLines={3}
+          >
             {lessonSubject}
           </Text>
+          {homework ? (
+            <Text
+              style={[
+                styles.homework,
+                { color: theme.TextTertiary },
+                homeworkDone ? styles.descriptionDone : null,
+              ]}
+              numberOfLines={2}
+            >
+              {homework}
+            </Text>
+          ) : null}
           {homeworkDone ? (
-            <View style={styles.doneBadge}>
-              <Text style={styles.doneLabel}>✓ Fait</Text>
+            <View style={[styles.doneBadge, { backgroundColor: theme.SuccessSoft }]}>
+              <Text style={[styles.doneLabel, { color: theme.Success }]}>✓ Fait</Text>
             </View>
           ) : null}
         </View>
@@ -82,15 +111,11 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.space2,
     paddingHorizontal: Spacing.space4,
     paddingVertical: Spacing.space3,
-    backgroundColor: Colors.Surface,
     borderRadius: Radius.md,
     shadowColor: "#000000",
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
-  },
-  containerDone: {
-    backgroundColor: Colors.SurfaceDone,
   },
   timeColumn: {
     width: Spacing.space8,
@@ -98,7 +123,6 @@ const styles = StyleSheet.create({
   },
   time: {
     ...Typography.Mono,
-    color: Colors.TextSecondary,
   },
   content: {
     flex: 1,
@@ -116,31 +140,28 @@ const styles = StyleSheet.create({
   },
   subject: {
     ...Typography.BodyMedium,
-    color: Colors.TextPrimary,
     textTransform: "uppercase",
   },
   divider: {
     height: 1,
-    backgroundColor: Colors.Border,
   },
   description: {
     ...Typography.Body,
-    color: Colors.TextSecondary,
+  },
+  homework: {
+    ...Typography.Caption,
   },
   descriptionDone: {
-    color: Colors.TextTertiary,
     textDecorationLine: "line-through",
   },
   doneBadge: {
     alignSelf: "flex-start",
-    backgroundColor: Colors.SuccessSoft,
     borderRadius: Radius.full,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
   doneLabel: {
     ...Typography.Caption,
-    color: Colors.Success,
     fontWeight: "600",
   },
 });

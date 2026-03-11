@@ -6,7 +6,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
-import { Colors, Radius, Spacing, Typography } from "@/theme";
+import { Radius, Spacing, Typography, useAppTheme } from "@/theme";
 
 export interface DayTab {
   label: string;
@@ -22,6 +22,7 @@ interface DayTabStripProps {
 }
 
 export function DayTabStrip({ days, selectedIndex, onSelectDay }: DayTabStripProps) {
+  const theme = useAppTheme();
   const [containerWidth, setContainerWidth] = useState(0);
   const underlineX = useSharedValue(0);
   const itemWidth = containerWidth / 5;
@@ -42,7 +43,10 @@ export function DayTabStrip({ days, selectedIndex, onSelectDay }: DayTabStripPro
   };
 
   return (
-    <View style={styles.wrapper} onLayout={handleLayout}>
+    <View
+      style={[styles.wrapper, { backgroundColor: theme.Background, borderBottomColor: theme.Border }]}
+      onLayout={handleLayout}
+    >
       <View style={styles.row}>
         {days.map((day, index) => {
           const isActive = index === selectedIndex;
@@ -53,20 +57,12 @@ export function DayTabStrip({ days, selectedIndex, onSelectDay }: DayTabStripPro
                 {day.isToday ? <View style={styles.todayMarker} /> : <View style={styles.todayMarkerSpacer} />}
               </View>
               <Text
-                style={[
-                  styles.dayLabel,
-                  isActive ? styles.dayLabelActive : null,
-                  !day.hasEntries ? styles.dayLabelMuted : null,
-                ]}
+                style={[styles.dayLabel, { color: isActive ? theme.AccentBlue : theme.TextTertiary }, !day.hasEntries ? styles.dayLabelMuted : null]}
               >
                 {day.label}
               </Text>
               <Text
-                style={[
-                  styles.dayNumber,
-                  isActive ? styles.dayLabelActive : null,
-                  !day.hasEntries ? styles.dayLabelMuted : null,
-                ]}
+                style={[styles.dayNumber, { color: isActive ? theme.AccentBlue : theme.TextTertiary }, !day.hasEntries ? styles.dayLabelMuted : null]}
               >
                 {day.date}
               </Text>
@@ -75,7 +71,9 @@ export function DayTabStrip({ days, selectedIndex, onSelectDay }: DayTabStripPro
         })}
       </View>
       {containerWidth ? (
-        <Animated.View style={[styles.underline, { width: itemWidth - 28 }, underlineStyle]} />
+        <Animated.View
+          style={[styles.underline, { width: itemWidth - 28, backgroundColor: theme.AccentBlue }, underlineStyle]}
+        />
       ) : null}
     </View>
   );
@@ -83,9 +81,7 @@ export function DayTabStrip({ days, selectedIndex, onSelectDay }: DayTabStripPro
 
 const styles = StyleSheet.create({
   wrapper: {
-    backgroundColor: Colors.Background,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.Border,
     paddingBottom: Spacing.space2,
   },
   row: {
@@ -106,7 +102,7 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: Radius.full,
-    backgroundColor: Colors.AccentBlue,
+    backgroundColor: "#3B7BF8",
   },
   todayMarkerSpacer: {
     width: 4,
@@ -114,15 +110,11 @@ const styles = StyleSheet.create({
   },
   dayLabel: {
     ...Typography.Caption,
-    color: Colors.TextTertiary,
   },
   dayNumber: {
     ...Typography.BodyMedium,
-    color: Colors.TextTertiary,
   },
-  dayLabelActive: {
-    color: Colors.AccentBlue,
-  },
+  dayLabelActive: {},
   dayLabelMuted: {
     opacity: 0.4,
   },
@@ -132,6 +124,5 @@ const styles = StyleSheet.create({
     left: 14,
     height: 2,
     borderRadius: Radius.full,
-    backgroundColor: Colors.AccentBlue,
   },
 });

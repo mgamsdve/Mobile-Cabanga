@@ -44,12 +44,18 @@ importers:
       expo-haptics:
         specifier: ^55.0.8
         version: 55.0.8(expo@55.0.5)
+      expo-modules-autolinking:
+        specifier: ^55.0.8
+        version: 55.0.8(typescript@5.9.3)
       expo-secure-store:
         specifier: ^55.0.8
         version: 55.0.8(expo@55.0.5)
       expo-status-bar:
         specifier: ~55.0.4
         version: 55.0.4(react-native@0.83.2(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
+      expo-system-ui:
+        specifier: ~55.0.9
+        version: 55.0.9(expo@55.0.5)(react-native@0.83.2(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))
       react:
         specifier: 19.2.0
         version: 19.2.0
@@ -81,6 +87,9 @@ importers:
         specifier: ^5.0.11
         version: 5.0.11(@types/react@19.2.14)(react@19.2.0)(use-sync-external-store@1.6.0(react@19.2.0))
     devDependencies:
+      '@react-native/gradle-plugin':
+        specifier: ^0.84.1
+        version: 0.84.1
       '@types/react':
         specifier: ~19.2.2
         version: 19.2.14
@@ -882,6 +891,10 @@ packages:
     resolution: {integrity: sha512-PqN11fXRAU+uJ0inZY1HWYlwJOXHOhF4SPyeHBBxjajKpm2PGunmvFWwkmBjmmUkP/CNO0ezTUudV0oj+2wiHQ==}
     engines: {node: '>= 20.19.4'}
 
+  '@react-native/gradle-plugin@0.84.1':
+    resolution: {integrity: sha512-7uVlPBE3uluRNRX4MW7PUJIO1LDBTpAqStKHU7LHH+GRrdZbHsWtOEAX8PiY4GFfBEvG8hEjiuTOqAxMjV+hDg==}
+    engines: {node: '>= 20.19.4'}
+
   '@react-native/js-polyfills@0.83.2':
     resolution: {integrity: sha512-dk6fIY2OrKW/2Nk2HydfYNrQau8g6LOtd7NVBrgaqa+lvuRyIML5iimShP5qPqQnx2ofHuzjFw+Ya0b5Q7nDbA==}
     engines: {node: '>= 20.19.4'}
@@ -1522,6 +1535,16 @@ packages:
     peerDependencies:
       react: '*'
       react-native: '*'
+
+  expo-system-ui@55.0.9:
+    resolution: {integrity: sha512-8ygP1B0uFAFI8s7eHY2IcGnE83GhFeZYwHBr/fQ4dSXnc7iVT9zp2PvyTyiDiibQ69dBG+fauMQ4KlPcOO51kQ==}
+    peerDependencies:
+      expo: '*'
+      react-native: '*'
+      react-native-web: '*'
+    peerDependenciesMeta:
+      react-native-web:
+        optional: true
 
   expo@55.0.5:
     resolution: {integrity: sha512-toVYbRU0gH50QSlIyrAswXD87RKi2pcJcHZpBDuqU3mIQZzJkTcWgRLWN/2R/wnd3kuJTtW5xlr5ndVG6xEWxQ==}
@@ -4049,6 +4072,8 @@ snapshots:
 
   '@react-native/gradle-plugin@0.83.2': {}
 
+  '@react-native/gradle-plugin@0.84.1': {}
+
   '@react-native/js-polyfills@0.83.2': {}
 
   '@react-native/normalize-colors@0.83.2': {}
@@ -4743,6 +4768,15 @@ snapshots:
       react: 19.2.0
       react-native: 0.83.2(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0)
       react-native-is-edge-to-edge: 1.3.1(react-native@0.83.2(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
+
+  expo-system-ui@55.0.9(expo@55.0.5)(react-native@0.83.2(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0)):
+    dependencies:
+      '@react-native/normalize-colors': 0.83.2
+      debug: 4.4.3
+      expo: 55.0.5(@babel/core@7.29.0)(@expo/dom-webview@55.0.3)(react-native-webview@13.16.0(react-native@0.83.2(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native@0.83.2(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
+      react-native: 0.83.2(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0)
+    transitivePeerDependencies:
+      - supports-color
 
   expo@55.0.5(@babel/core@7.29.0)(@expo/dom-webview@55.0.3)(react-native-webview@13.16.0(react-native@0.83.2(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native@0.83.2(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)(typescript@5.9.3):
     dependencies:

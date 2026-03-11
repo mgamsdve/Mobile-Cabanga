@@ -1,14 +1,14 @@
 import Constants from "expo-constants";
 import Toast from "react-native-toast-message";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ProfileStackParamList } from "@/navigation/types";
 import { useDiaryStore } from "@/store/diaryStore";
 import { useScheduleStore } from "@/store/scheduleStore";
 import { useUiStore } from "@/store/uiStore";
-import { Colors, Radius, Spacing, Typography } from "@/theme";
+import { Radius, Spacing, Typography, useAppTheme } from "@/theme";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "Settings">;
 
@@ -16,26 +16,37 @@ function SettingsRow({
   label,
   value,
   onPress,
+  right,
 }: {
   label: string;
   value?: string;
   onPress?: () => void;
+  right?: React.ReactNode;
 }) {
+  const theme = useAppTheme();
+
   return (
-    <Pressable disabled={!onPress} onPress={onPress} style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
+    <Pressable
+      disabled={!onPress}
+      onPress={onPress}
+      style={[styles.row, { backgroundColor: theme.Surface }]}
+    >
+      <Text style={[styles.rowLabel, { color: theme.TextPrimary }]}>{label}</Text>
       <View style={styles.rowRight}>
-        {value ? <Text style={styles.rowValue}>{value}</Text> : null}
-        {onPress ? <Text style={styles.chevron}>›</Text> : null}
+        {right ?? (value ? <Text style={[styles.rowValue, { color: theme.TextSecondary }]}>{value}</Text> : null)}
+        {onPress ? <Text style={[styles.chevron, { color: theme.TextTertiary }]}>›</Text> : null}
       </View>
     </Pressable>
   );
 }
 
 export function SettingsScreen({ navigation }: Props) {
+  const theme = useAppTheme();
   const clearDiaryCache = useDiaryStore((state) => state.clearCache);
   const clearScheduleCache = useScheduleStore((state) => state.clearCache);
   const clearHomeworkOverrides = useUiStore((state) => state.clearHomeworkOverrides);
+  const themeMode = useUiStore((state) => state.themeMode);
+  const setThemeMode = useUiStore((state) => state.setThemeMode);
 
   const handleClearCache = async () => {
     await clearDiaryCache();
@@ -49,21 +60,34 @@ export function SettingsScreen({ navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.Background }]} edges={["top"]}>
       <ScrollView contentContainerStyle={styles.content}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backRow}>
-          <Text style={styles.backText}>← Profil</Text>
+          <Text style={[styles.backText, { color: theme.TextSecondary }]}>← Profil</Text>
         </Pressable>
 
-        <Text style={styles.title}>Paramètres</Text>
+        <Text style={[styles.title, { color: theme.TextPrimary }]}>Paramètres</Text>
 
-        <Text style={styles.sectionLabel}>AFFICHAGE</Text>
-        <SettingsRow label="Thème" value="Clair" />
+        <Text style={[styles.sectionLabel, { color: theme.TextSecondary }]}>AFFICHAGE</Text>
+        <SettingsRow
+          label="Dark mode"
+          right={
+            <Switch
+              value={themeMode === "dark"}
+              onValueChange={(value) => {
+                void setThemeMode(value ? "dark" : "light");
+              }}
+              trackColor={{ false: theme.BorderStrong, true: theme.AccentBlueSoft }}
+              thumbColor={themeMode === "dark" ? theme.AccentBlue : theme.Surface}
+            />
+          }
+        />
+        <SettingsRow label="Thème" value={themeMode === "dark" ? "Dark mode" : "Light mode"} />
 
-        <Text style={styles.sectionLabel}>DONNÉES</Text>
+        <Text style={[styles.sectionLabel, { color: theme.TextSecondary }]}>DONNÉES</Text>
         <SettingsRow label="Vider le cache" onPress={handleClearCache} />
 
-        <Text style={styles.sectionLabel}>À PROPOS</Text>
+        <Text style={[styles.sectionLabel, { color: theme.TextSecondary }]}>À PROPOS</Text>
         <SettingsRow label="Version" value={Constants.expoConfig?.version ?? "1.0.0"} />
       </ScrollView>
     </SafeAreaView>
@@ -73,7 +97,6 @@ export function SettingsScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.Background,
   },
   content: {
     paddingHorizontal: Spacing.space4,
@@ -84,21 +107,17 @@ const styles = StyleSheet.create({
   },
   backText: {
     ...Typography.Body,
-    color: Colors.TextSecondary,
   },
   title: {
     ...Typography.H2,
-    color: Colors.TextPrimary,
     marginBottom: Spacing.space5,
   },
   sectionLabel: {
     ...Typography.Label,
-    color: Colors.TextSecondary,
     marginBottom: Spacing.space2,
   },
   row: {
     minHeight: 56,
-    backgroundColor: Colors.Surface,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.space4,
     paddingVertical: Spacing.space4,
@@ -109,7 +128,6 @@ const styles = StyleSheet.create({
   },
   rowLabel: {
     ...Typography.BodyMedium,
-    color: Colors.TextPrimary,
   },
   rowRight: {
     flexDirection: "row",
@@ -118,10 +136,8 @@ const styles = StyleSheet.create({
   },
   rowValue: {
     ...Typography.Body,
-    color: Colors.TextSecondary,
   },
   chevron: {
     fontSize: 24,
-    color: Colors.TextTertiary,
   },
 });

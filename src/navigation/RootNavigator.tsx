@@ -7,26 +7,27 @@ import { MainTabs } from "@/navigation/MainTabs";
 import { RootStackParamList } from "@/navigation/types";
 import { LoginScreen } from "@/screens/LoginScreen";
 import { useAuthStore } from "@/store/authStore";
-import { Colors } from "@/theme";
+import { useAppTheme } from "@/theme";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-const navigationTheme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    background: Colors.Background,
-    card: Colors.Surface,
-    border: Colors.Border,
-    text: Colors.TextPrimary,
-    primary: Colors.AccentBlue,
-  },
-};
-
 export function RootNavigator() {
+  const theme = useAppTheme();
   const bootstrap = useAuthStore((state) => state.bootstrap);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const isBootstrapping = useAuthStore((state) => state.isBootstrapping);
+
+  const navigationTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: theme.Background,
+      card: theme.Surface,
+      border: theme.Border,
+      text: theme.TextPrimary,
+      primary: theme.AccentBlue,
+    },
+  };
 
   useEffect(() => {
     bootstrap();
@@ -34,8 +35,8 @@ export function RootNavigator() {
 
   if (isBootstrapping) {
     return (
-      <View style={styles.loadingScreen}>
-        <ActivityIndicator size="small" color={Colors.AccentBlue} />
+      <View style={[styles.loadingScreen, { backgroundColor: theme.Background }]}>
+        <ActivityIndicator size="small" color={theme.AccentBlue} />
       </View>
     );
   }
@@ -56,7 +57,6 @@ export function RootNavigator() {
 const styles = StyleSheet.create({
   loadingScreen: {
     flex: 1,
-    backgroundColor: Colors.Background,
     alignItems: "center",
     justifyContent: "center",
   },

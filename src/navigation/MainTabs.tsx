@@ -12,7 +12,7 @@ import { ProfileScreen } from "@/screens/ProfileScreen";
 import { ScheduleScreen } from "@/screens/ScheduleScreen";
 import { SettingsScreen } from "@/screens/SettingsScreen";
 import { useUiStore } from "@/store/uiStore";
-import { Colors } from "@/theme";
+import { useAppTheme } from "@/theme";
 
 const Tabs = createBottomTabNavigator<MainTabParamList>();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
@@ -52,8 +52,11 @@ function HomeStackNavigator() {
         name="LessonDetail"
         component={LessonDetailScreen}
         options={{
-          presentation: Platform.OS === "ios" ? "transparentModal" : "modal",
-          animation: "slide_from_bottom",
+          presentation: "transparentModal",
+          animation: "none",
+          contentStyle: {
+            backgroundColor: "transparent",
+          },
         }}
       />
     </HomeStack.Navigator>
@@ -68,8 +71,11 @@ function DiaryStackNavigator() {
         name="LessonDetail"
         component={LessonDetailScreen}
         options={{
-          presentation: Platform.OS === "ios" ? "transparentModal" : "modal",
-          animation: "slide_from_bottom",
+          presentation: "transparentModal",
+          animation: "none",
+          contentStyle: {
+            backgroundColor: "transparent",
+          },
         }}
       />
     </DiaryStack.Navigator>
@@ -80,6 +86,17 @@ function ScheduleStackNavigator() {
   return (
     <ScheduleStack.Navigator screenOptions={{ headerShown: false }}>
       <ScheduleStack.Screen name="Schedule" component={ScheduleScreen} />
+      <ScheduleStack.Screen
+        name="LessonDetail"
+        component={LessonDetailScreen}
+        options={{
+          presentation: "transparentModal",
+          animation: "none",
+          contentStyle: {
+            backgroundColor: "transparent",
+          },
+        }}
+      />
     </ScheduleStack.Navigator>
   );
 }
@@ -102,15 +119,23 @@ function ProfileStackNavigator() {
 }
 
 export function MainTabs() {
+  const theme = useAppTheme();
+
   return (
     <Tabs.Navigator
       initialRouteName="DiaryTab"
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarActiveTintColor: Colors.AccentBlue,
-        tabBarInactiveTintColor: Colors.TextTertiary,
-        tabBarStyle: styles.tabBar,
+        tabBarActiveTintColor: theme.AccentBlue,
+        tabBarInactiveTintColor: theme.TextTertiary,
+        tabBarStyle: [
+          styles.tabBar,
+          {
+            backgroundColor: theme.TabBarBg,
+            borderTopColor: theme.TabBarBorder,
+          },
+        ],
       }}
       screenListeners={({ route }) => ({
         state: () => {
@@ -169,8 +194,6 @@ export function MainTabs() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: Colors.TabBarBg,
-    borderTopColor: Colors.TabBarBorder,
     height: 64,
     paddingTop: 10,
     shadowColor: "#000000",

@@ -22,7 +22,7 @@ import { WeekNavigator } from "@/components/WeekNavigator";
 import { DiaryStackParamList } from "@/navigation/types";
 import { useDiaryStore } from "@/store/diaryStore";
 import { useUiStore } from "@/store/uiStore";
-import { Colors, Spacing } from "@/theme";
+import { Colors, Spacing, useAppTheme } from "@/theme";
 import {
   addDays,
   compareIsoDates,
@@ -43,6 +43,7 @@ interface DisplayEntry extends DiaryEntry {
 }
 
 export function DiaryScreen({ navigation }: Props) {
+  const theme = useAppTheme();
   const listRef = useRef<FlatList<DisplayEntry>>(null);
   useScrollToTop(listRef);
 
@@ -217,7 +218,7 @@ export function DiaryScreen({ navigation }: Props) {
   }));
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.Background }]} edges={["top"]}>
       <WeekNavigator
         isCurrentWeek={isCurrentWeek}
         onGoToToday={handleGoToToday}
@@ -228,7 +229,11 @@ export function DiaryScreen({ navigation }: Props) {
       />
       <DayTabStrip days={dayTabs} selectedIndex={selectedDayIndex} onSelectDay={(index) => void selectDayByIndex(index)} />
 
-      {isOffline && weekData ? <Text style={styles.offlineBanner}>Données hors ligne</Text> : null}
+      {isOffline && weekData ? (
+        <Text style={[styles.offlineBanner, { color: theme.TextSecondary, backgroundColor: theme.AccentBlueSoft }]}>
+          Données hors ligne
+        </Text>
+      ) : null}
 
       <Animated.View
         style={[
@@ -261,6 +266,7 @@ export function DiaryScreen({ navigation }: Props) {
                 hour={item.hour}
                 lessonName={item.lessonName}
                 lessonSubject={item.lessonSubject}
+                homework={item.homework}
                 homeworkDone={item.resolvedDone}
                 showTime={item.showTime}
                 onPress={() => navigation.navigate("LessonDetail", { entry: item })}
@@ -270,7 +276,7 @@ export function DiaryScreen({ navigation }: Props) {
             ListHeaderComponent={<DayHeader date={selectedDay} isToday={isToday(selectedDay)} />}
             ListEmptyComponent={<EmptyState icon="📚" message="Pas d'entrées pour ce jour" />}
             refreshControl={
-              <RefreshControl refreshing={refreshing} tintColor={Colors.AccentBlue} onRefresh={refreshWeek} />
+              <RefreshControl refreshing={refreshing} tintColor={theme.AccentBlue} onRefresh={refreshWeek} />
             }
           />
         )}
@@ -282,11 +288,8 @@ export function DiaryScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.Background,
   },
   offlineBanner: {
-    color: Colors.TextSecondary,
-    backgroundColor: Colors.AccentBlueSoft,
     paddingHorizontal: Spacing.space4,
     paddingVertical: Spacing.space2,
     marginHorizontal: Spacing.space4,

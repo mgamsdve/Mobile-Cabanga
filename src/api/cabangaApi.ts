@@ -19,6 +19,7 @@ export interface DiaryEntry {
   hour: string;
   lessonName: string;
   lessonSubject: string;
+  homework?: string;
   homeworkDone: boolean;
   id: number;
 }

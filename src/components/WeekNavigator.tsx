@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { Colors, Spacing, Typography } from "@/theme";
+import { Spacing, Typography, useAppTheme } from "@/theme";
 
 interface WeekNavigatorProps {
   weekLabel: string;
@@ -19,32 +19,29 @@ export function WeekNavigator({
   onGoToToday,
   tone = "future",
 }: WeekNavigatorProps) {
+  const theme = useAppTheme();
   const labelColor =
-    tone === "current"
-      ? Colors.AccentBlue
-      : tone === "past"
-        ? Colors.TextSecondary
-        : Colors.TextPrimary;
+    tone === "current" ? theme.AccentBlue : tone === "past" ? theme.TextSecondary : theme.TextPrimary;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.Background, borderBottomColor: theme.Border }]}>
       <Pressable hitSlop={12} onPress={onPrevWeek}>
-        <Text style={styles.chevron}>‹</Text>
+        <Text style={[styles.chevron, { color: theme.TextPrimary }]}>‹</Text>
       </Pressable>
       <Pressable style={styles.center} onPress={onGoToToday}>
         <Text style={[styles.label, { color: labelColor }]}>Semaine du {weekLabel}</Text>
       </Pressable>
       {isCurrentWeek ? (
         <Pressable hitSlop={12} onPress={onNextWeek}>
-          <Text style={styles.chevron}>›</Text>
+          <Text style={[styles.chevron, { color: theme.TextPrimary }]}>›</Text>
         </Pressable>
       ) : (
         <View style={styles.rightArea}>
           <Pressable hitSlop={12} onPress={onGoToToday}>
-            <Text style={styles.todayLink}>Aujourd'hui</Text>
+            <Text style={[styles.todayLink, { color: theme.AccentBlue }]}>Aujourd'hui</Text>
           </Pressable>
           <Pressable hitSlop={12} onPress={onNextWeek}>
-            <Text style={styles.chevron}>›</Text>
+            <Text style={[styles.chevron, { color: theme.TextPrimary }]}>›</Text>
           </Pressable>
         </View>
       )}
@@ -58,9 +55,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: Spacing.space4,
-    backgroundColor: Colors.Background,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.Border,
   },
   center: {
     flex: 1,
@@ -71,7 +66,6 @@ const styles = StyleSheet.create({
   },
   chevron: {
     fontSize: 28,
-    color: Colors.TextPrimary,
     lineHeight: 28,
   },
   rightArea: {
@@ -81,7 +75,6 @@ const styles = StyleSheet.create({
   },
   todayLink: {
     ...Typography.Caption,
-    color: Colors.AccentBlue,
     fontWeight: "600",
   },
 });
